@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self' petassets:; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: petassets:; connect-src 'none'; object-src 'none'; base-uri 'none'"
+    />
+    <title>Bongo 快捷聊天</title>
+    <link rel="stylesheet" href="quick.css" />
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <span class="cat-mark"
+          ><svg viewBox="0 0 24 24" class="i" aria-hidden="true">
+            <path
+              d="M12 2c0 6-4 10-10 10 6 0 10 4 10 10 0-6 4-10 10-10-6 0-10-4-10-10Z"
+            /></svg
+        ></span>
+        <div><strong>Bongo</strong><small>把文件交给我，你继续忙。</small></div>
+      </div>
+      <div class="window-controls">
+        <button id="full" title="打开完整对话">
+          <svg viewBox="0 0 24 24" class="i" aria-hidden="true">
+            <path d="M9 4H4v16h16v-5M14 3h7v7M10 14 21 3" />
+          </svg></button
+        ><button id="close" title="收起快捷聊天">×</button>
+      </div>
+    </header>
+    <div class="context">
+      <button id="folder" title="更换工作目录">
+        <svg viewBox="0 0 24 24" class="i" aria-hidden="true">
+          <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10H3z" />
+        </svg>
+        <span id="folder-label">选择工作文件夹</span
+        ><svg viewBox="0 0 24 24" class="i" aria-hidden="true">
+          <path d="m7 10 5 5 5-5" />
+        </svg></button
+      ><span id="profile"></span>
+    </div>
+    <div class="tabs">
+      <button id="chat-tab" class="selected">快捷聊天</button
+      ><button id="activity-tab">任务动态 <span id="badge"></span></button
+      ><button id="output" title="用默认文件管理器打开输出">打开结果 ↗</button>
+    </div>
+    <section id="messages" aria-live="polite">
+      <div class="empty">
+        <span>✳</span>
+        <h1>需要我搭把手吗？</h1>
+        <p>
+          输入一句话，或者拖入文件、粘贴截图。<br />我会接着主窗口的当前对话工作。
+        </p>
+      </div>
+    </section>
+    <section id="activities" class="hidden"></section>
+    <footer>
+      <div id="questions" class="hidden"></div>
+      <div id="attachments"></div>
+      <div id="status"><i></i><span id="status-text">陪你待命</span></div>
+      <div id="composer">
+        <textarea
+          id="prompt"
+          placeholder="说说要做什么，或 Ctrl+V 粘贴截图…"
+          rows="2"
+          aria-label="快捷聊天消息"
+        ></textarea>
+        <div class="toolbar">
+          <div>
+            <button id="attach" title="添加文件">＋</button
+            ><span>Enter 发送 · Shift Enter 换行</span>
+          </div>
+          <button id="send" class="send" title="发送">↑</button
+          ><button id="stop" class="stop hidden" title="停止当前任务">■</button>
+        </div>
+      </div>
+      <div id="error" class="hidden" role="alert"></div>
+      <p class="note">任务在后台继续运行 · 关闭这个窗口不会停止</p>
+    </footer>
+    <div id="drop" class="drop hidden">松开鼠标，把文件交给我</div>
+    <script src="quick.js"></script>
+  </body>
+</html>

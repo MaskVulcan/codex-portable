@@ -1,0 +1,48 @@
+{
+  "id": "relay-default",
+  "name": "axhan",
+  "baseUrl": "https://api.aixhan.com/v1",
+  "apiKey": "",
+  "model": "gpt-6.1-sol",
+  "reasoningEffort": "xhigh",
+  "fastMode": true,
+  "webSearch": true,
+  "preferencesRevision": 2,
+  "activeProfileId": "relay-default",
+  "profiles": [
+    {
+      "id": "relay-default",
+      "name": "axhan",
+      "baseUrl": "https://api.aixhan.com/v1",
+      "apiKey": "",
+      "model": "gpt-6.1-sol",
+      "reasoningEffort": "xhigh",
+      "fastMode": true,
+      "webSearch": true,
+      "models": [
+        "gpt-6.1-sol",
+        "gpt-6.1-terra",
+        "gpt-6-astra",
+        "gpt-6-sol",
+        "gpt-6-luna"
+      ]
+    },
+    {
+      "id": "4router-core",
+      "name": "4router",
+      "baseUrl": "https://4router.ai/v1",
+      "apiKey": "",
+      "model": "gpt-6.1-sol",
+      "reasoningEffort": "xhigh",
+      "fastMode": true,
+      "webSearch": true,
+      "models": [
+        "gpt-6.1-sol",
+        "gpt-6.1-terra",
+        "gpt-6-astra",
+        "gpt-6-sol",
+        "gpt-6-luna"
+      ]
+    }
+  ]
+}

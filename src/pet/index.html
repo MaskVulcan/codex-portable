@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self' petassets:; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: petassets:; connect-src 'self' petassets:; object-src 'none'; base-uri 'none'"
+    />
+    <title>Bongo · Codex</title>
+    <link rel="stylesheet" href="pet.css" />
+  </head>
+  <body>
+    <main id="pet-root">
+      <button id="bubble" class="bubble hidden" title="查看任务">
+        <strong id="bubble-title">处理好了</strong
+        ><span id="bubble-message"></span>
+      </button>
+      <div id="cat-area">
+        <canvas
+          id="cat-canvas"
+          aria-label="Bongo 桌宠，拖动移动，单击摸头，双击聊天"
+        ></canvas>
+        <div id="fallback" class="fallback hidden">
+          <img
+            src="petassets://local/bongo/resources/cover.png"
+            alt="Bongo 小猫"
+          /><span>兼容模式</span>
+        </div>
+        <div id="hearts" class="hearts" aria-hidden="true"></div>
+      </div>
+      <div id="controls" class="controls">
+        <button id="open" title="打开当前对话">
+          <span id="state-dot"></span
+          ><span id="state-label">陪你待命</span></button
+        ><button id="quick" title="快捷聊天 Ctrl+Alt+P">
+          <svg viewBox="0 0 24 24" class="i" aria-hidden="true">
+            <path d="m15 4 5 5M4 20l5-1 12-12-5-5L4 15z" />
+          </svg></button
+        ><button id="notices" title="任务动态">
+          <svg viewBox="0 0 24 24" class="i" aria-hidden="true">
+            <path
+              d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"
+            /></svg
+          ><small id="notice-count" class="hidden">0</small></button
+        ><button id="more" title="互动和设置">⋯</button>
+      </div>
+      <span id="hint" class="hint">拖我挪位置 · 双击聊天</span>
+    </main>
+    <script src="../../assets/pet-vendor/live2dcubismcore.min.js"></script>
+    <script src="../../assets/pet-vendor/pixi.min.js"></script>
+    <script src="../../assets/pet-vendor/unsafe-eval.min.js"></script>
+    <script src="../../assets/pet-vendor/cubism4.min.js"></script>
+    <script src="pet.js"></script>
+  </body>
+</html>

@@ -1,0 +1,108 @@
+{
+  "name": "codex-portable-assistant",
+  "version": "1.2.0",
+  "description": "Portable Windows document assistant powered by Codex",
+  "main": "src/main.cjs",
+  "author": "MaskVulcan",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MaskVulcan/codex-portable.git"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test/*.test.cjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "build:win": "electron-builder --win dir --x64 --publish never"
+  },
+  "dependencies": {
+    "dompurify": "^3.3.0",
+    "marked": "^15.0.12",
+    "tar": "^7.5.22",
+    "yazl": "^3.3.1"
+  },
+  "devDependencies": {
+    "@pixi/unsafe-eval": "^6.5.10",
+    "electron": "45.2.1",
+    "electron-builder": "^26.0.12",
+    "pixi-live2d-display": "^0.4.0",
+    "pixi.js": "^6.5.10",
+    "playwright": "1.65.0",
+    "prettier": "3.6.2"
+  },
+  "overrides": {
+    "pixi-live2d-display": {
+      "gh-pages": "^6.3.0"
+    },
+    "@electron/universal": {
+      "minimatch": "^11.0.1"
+    },
+    "app-builder-lib": {
+      "minimatch": "^11.0.1"
+    }
+  },
+  "build": {
+    "appId": "local.codex.portable.assistant",
+    "productName": "Codex Portable",
+    "asar": true,
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json",
+      "node_modules/marked/**/*",
+      "node_modules/dompurify/**/*"
+    ],
+    "extraResources": [],
+    "win": {
+      "target": [
+        {
+          "target": "dir",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.ico",
+      "signAndEditExecutable": false,
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "compression": "maximum",
+    "extraFiles": [
+      {
+        "from": "payload/codex",
+        "to": "codex"
+      },
+      {
+        "from": "payload/python",
+        "to": "python"
+      },
+      {
+        "from": "assets/office_tools.py",
+        "to": "scripts/office_tools.py"
+      },
+      {
+        "from": "payload/provisioning.json",
+        "to": "config/provisioning.json"
+      },
+      {
+        "from": "payload/layout.json",
+        "to": "config/manifest.json"
+      },
+      {
+        "from": "payload/licenses",
+        "to": "licenses"
+      },
+      {
+        "from": "pet-assets",
+        "to": "pets"
+      }
+    ]
+  }
+}

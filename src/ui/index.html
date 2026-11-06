@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <title>Codex Portable</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      class="svg-definitions"
+      aria-hidden="true"
+    >
+      <symbol id="icon-folder" viewBox="0 0 24 24">
+        <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10H3z" />
+      </symbol>
+      <symbol id="icon-search" viewBox="0 0 24 24">
+        <circle cx="10.5" cy="10.5" r="6.5" />
+        <path d="m16 16 4.5 4.5" />
+      </symbol>
+      <symbol id="icon-chevron" viewBox="0 0 24 24">
+        <path d="m7 10 5 5 5-5" />
+      </symbol>
+      <symbol id="icon-export" viewBox="0 0 24 24">
+        <path d="M5 14v6h14v-6M12 15V3m-5 5 5-5 5 5" />
+      </symbol>
+      <symbol id="icon-panel" viewBox="0 0 24 24">
+        <rect x="3" y="4" width="18" height="16" rx="2" />
+        <path d="M15 4v16" />
+      </symbol>
+      <symbol id="icon-spark" viewBox="0 0 24 24">
+        <path
+          d="M12 2c0 6-4 10-10 10 6 0 10 4 10 10 0-6 4-10 10-10-6 0-10-4-10-10Z"
+        />
+      </symbol>
+      <symbol id="icon-document" viewBox="0 0 24 24">
+        <path d="M14 3H5v18h14V8zM14 3v5h5M8 12h8M8 16h6" />
+      </symbol>
+      <symbol id="icon-pen" viewBox="0 0 24 24">
+        <path d="m15 4 5 5M4 20l5-1 12-12-5-5L4 15z" />
+      </symbol>
+      <symbol id="icon-globe" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9" />
+        <ellipse cx="12" cy="12" rx="4" ry="9" />
+        <path d="M3 12h18" />
+      </symbol>
+      <symbol id="icon-refresh" viewBox="0 0 24 24">
+        <path
+          d="M20 7v5h-5M4 17v-5h5M5.2 8a8 8 0 0 1 13-3L20 7M4 17l1.8 2a8 8 0 0 0 13-3"
+        />
+      </symbol>
+      <symbol id="icon-settings" viewBox="0 0 24 24">
+        <path
+          d="m9 3-1 3-3 1-2 4 2 2v3l3 2 1 3h5l1-3 3-2v-3l2-2-2-4-3-1-1-3Z"
+        />
+        <circle cx="11.5" cy="12" r="3" />
+      </symbol>
+    </svg>
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">c<span></span></div>
+        <div><strong>Codex</strong><small>便携文件助手</small></div>
+        <span class="portable-tag">PORTABLE</span>
+      </div>
+      <button id="new-chat" class="new-chat">
+        <span>＋</span>新对话<kbd>Ctrl N</kbd>
+      </button>
+      <label class="search-box"
+        ><span
+          ><svg class="i" aria-hidden="true">
+            <use href="#icon-search"></use></svg></span
+        ><input
+          id="history-search"
+          placeholder="搜索对话"
+          aria-label="搜索历史对话"
+      /></label>
+      <div class="section-label">
+        <select id="history-mode" aria-label="历史范围">
+          <option value="active">最近对话</option>
+          <option value="archived">已归档（点击恢复）</option></select
+        ><span id="history-count">0</span>
+      </div>
+      <div id="history" class="history"></div>
+      <div class="sidebar-bottom">
+        <button id="help-open" class="sidebar-button">
+          <span>?</span>帮助与数据</button
+        ><button id="pet-open" class="sidebar-button">
+          <span>♧</span>Bongo 桌面伙伴</button
+        ><button id="settings-open" class="sidebar-button">
+          <span
+            ><svg class="i" aria-hidden="true">
+              <use href="#icon-settings"></use></svg></span
+          >连接设置
+        </button>
+        <div class="local-note">
+          <span class="dot"></span>历史保存在本地<span class="access-pill"
+            >全权限</span
+          >
+        </div>
+      </div>
+    </aside>
+    <main>
+      <header class="topbar">
+        <button id="directory" class="directory-button" title="更换工作目录">
+          <span class="folder-symbol"
+            ><svg class="i" aria-hidden="true">
+              <use href="#icon-folder"></use></svg></span
+          ><span id="directory-label">选择工作文件夹</span
+          ><span class="chevron"
+            ><svg class="i" aria-hidden="true">
+              <use href="#icon-chevron"></use></svg
+          ></span>
+        </button>
+        <div class="top-actions">
+          <select
+            id="profile-switch"
+            class="profile-switch"
+            title="切换中转配置"
+            aria-label="切换中转配置"
+          ></select
+          ><button
+            id="benchmark-open"
+            class="text-button benchmark-open"
+            title="用相同模型请求测速比较"
+          >
+            一键测速</button
+          ><span id="connection-status" class="status-label"><i></i>就绪</span
+          ><button
+            id="export"
+            class="icon-button"
+            title="导出当前对话"
+            aria-label="导出对话"
+          >
+            <svg class="i" aria-hidden="true">
+              <use href="#icon-export"></use>
+            </svg></button
+          ><button
+            id="toggle-files"
+            class="icon-button active"
+            title="显示或隐藏文件"
+            aria-label="显示文件"
+          >
+            <svg class="i" aria-hidden="true">
+              <use href="#icon-panel"></use>
+            </svg>
+          </button>
+        </div>
+      </header>
+      <div class="workspace">
+        <section class="conversation">
+          <div id="messages" class="messages" aria-live="polite">
+            <div id="welcome" class="welcome">
+              <div class="welcome-emblem">
+                <svg class="i" aria-hidden="true">
+                  <use href="#icon-spark"></use>
+                </svg>
+              </div>
+              <div class="eyebrow">你的日常文件工作台</div>
+              <h1>今天想处理什么？</h1>
+              <p>拖入 Word、PDF 或图片，直接说你想做什么。</p>
+              <div class="suggestions">
+                <button
+                  data-prompt="请阅读我添加的文件，提炼核心内容，整理成一份清晰的摘要。"
+                >
+                  <span
+                    ><svg class="i" aria-hidden="true">
+                      <use href="#icon-document"></use></svg></span
+                  ><strong>读懂一份文档</strong
+                  ><small>提炼重点，整理摘要</small></button
+                ><button
+                  data-prompt="请帮我润色这份文档，保留原意，优化结构和措辞，并生成新的 Word 文件。"
+                >
+                  <span
+                    ><svg class="i" aria-hidden="true">
+                      <use href="#icon-pen"></use></svg></span
+                  ><strong>改好一份文件</strong
+                  ><small>润色排版，输出成稿</small></button
+                ><button
+                  data-prompt="请联网检索相关资料，核对来源，并整理成一份报告。主题是："
+                >
+                  <span
+                    ><svg class="i" aria-hidden="true">
+                      <use href="#icon-globe"></use></svg></span
+                  ><strong>查清一个问题</strong
+                  ><small>联网检索，附上来源</small>
+                </button>
+              </div>
+              <div id="choose-hint" class="choose-hint">
+                <button id="welcome-directory" class="primary-button">
+                  选择工作文件夹 <span>↗</span></button
+                ><small>输入文件和处理结果，都能方便地找到。</small>
+              </div>
+            </div>
+          </div>
+          <button
+            id="scroll-bottom"
+            class="scroll-bottom hidden"
+            title="回到最新消息"
+          >
+            ↓
+          </button>
+          <div class="composer-area">
+            <div id="question-panel" class="question-panel hidden"></div>
+            <div
+              id="mention-list"
+              class="mention-list hidden"
+              role="listbox"
+              aria-label="选择文件"
+            ></div>
+            <div id="attachment-list" class="attachment-list"></div>
+            <div id="activity-status" class="activity-status hidden">
+              <span class="spinner"></span
+              ><span id="activity-text">正在处理…</span>
+            </div>
+            <div id="composer" class="composer">
+              <textarea
+                id="prompt"
+                rows="2"
+                placeholder="告诉我你想做什么；拖入文件或 Ctrl+V 粘贴截图…"
+                aria-label="输入消息"
+              ></textarea>
+              <div class="composer-toolbar">
+                <div class="composer-tools">
+                  <button
+                    id="attach"
+                    class="icon-button"
+                    title="添加文件；Ctrl+V 可粘贴截图"
+                    aria-label="添加文件"
+                  >
+                    ＋</button
+                  ><button
+                    id="mention"
+                    class="text-button"
+                    title="引用工作目录中的文件"
+                  >
+                    @ 文件</button
+                  ><select
+                    id="task-template"
+                    class="template-select"
+                    aria-label="常用任务"
+                  >
+                    <option value="">常用任务</option>
+                    <option value="summary">文档摘要</option>
+                    <option value="polish">润色成稿</option>
+                    <option value="ocr">图片/扫描件提字</option>
+                    <option value="pdf">PDF 合并拆分</option>
+                    <option value="table">整理表格</option>
+                    <option value="research">查资料写报告</option></select
+                  ><select
+                    id="model-label"
+                    class="model-label model-select"
+                    aria-label="选择模型"
+                  >
+                    <option>gpt-6.1-sol</option></select
+                  ><button
+                    id="effort-label"
+                    class="text-button effort-label"
+                    title="调整思考强度"
+                  >
+                    思考：极高</button
+                  ><button
+                    id="fast-toggle"
+                    class="fast-toggle enabled"
+                    title="切换 Fast 模式"
+                    aria-pressed="true"
+                  >
+                    Fast 开
+                  </button>
+                </div>
+                <button
+                  id="send"
+                  class="send-button"
+                  title="发送（Enter）"
+                  aria-label="发送"
+                >
+                  ↑</button
+                ><button
+                  id="stop"
+                  class="stop-button hidden"
+                  title="停止任务"
+                  aria-label="停止任务"
+                >
+                  ■
+                </button>
+              </div>
+            </div>
+            <div class="composer-note">
+              <span>Enter 发送 · Shift Enter 换行</span
+              ><span>结果默认放在「输出」文件夹</span>
+            </div>
+          </div>
+        </section>
+        <aside id="files-panel" class="files-panel">
+          <div class="files-heading">
+            <strong>工作文件</strong
+            ><button
+              id="refresh-files"
+              class="icon-button"
+              title="刷新文件"
+              aria-label="刷新文件"
+            >
+              <svg class="i" aria-hidden="true">
+                <use href="#icon-refresh"></use>
+              </svg>
+            </button>
+          </div>
+          <div class="file-tabs">
+            <button id="outputs-tab" class="selected">处理结果</button
+            ><button id="all-files-tab">目录文件</button>
+          </div>
+          <div id="files" class="files">
+            <div class="files-empty">
+              <span
+                ><svg class="i" aria-hidden="true">
+                  <use href="#icon-folder"></use></svg
+              ></span>
+              <p>完成任务后，<br />在这里打开处理结果。</p>
+            </div>
+          </div>
+          <button id="open-directory" class="open-directory">
+            <span
+              ><svg class="i" aria-hidden="true">
+                <use href="#icon-folder"></use></svg></span
+            >打开工作文件夹 <span>↗</span>
+          </button>
+        </aside>
+      </div>
+    </main>
+    <div id="drop-overlay" class="drop-overlay hidden">
+      <div>
+        <span>＋</span><strong>松开鼠标，添加文件</strong
+        ><small>Word · PDF · 图片 · 表格 · 其他文件</small>
+      </div>
+    </div>
+    <dialog id="settings">
+      <form id="settings-form">
+        <div class="dialog-header">
+          <div>
+            <h2>连接设置</h2>
+            <p>连接你的中转站，配置保存在本机。</p>
+          </div>
+          <button
+            id="settings-close"
+            type="button"
+            class="icon-button"
+            aria-label="关闭设置"
+          >
+            ×
+          </button>
+        </div>
+        <div class="profile-picker">
+          <label
+            >已保存的配置<select
+              id="setting-profile"
+              aria-label="已保存的配置"
+            ></select
+          ></label>
+          <div class="profile-actions">
+            <button id="profile-new" class="secondary-button" type="button">
+              新增</button
+            ><button id="profile-delete" class="text-button" type="button">
+              删除
+            </button>
+          </div>
+        </div>
+        <button
+          id="benchmark-settings"
+          type="button"
+          class="text-button benchmark-settings"
+        >
+          一键测速比较全部线路 ↗</button
+        ><label
+          >配置名称<input
+            id="setting-name"
+            maxlength="70"
+            required
+            placeholder="例如：axhan 或 4router"
+            autocomplete="off" /></label
+        ><label
+          >API 地址<input
+            id="setting-url"
+            type="url"
+            required
+            placeholder="https://example.com/v1"
+            autocomplete="off" /></label
+        ><label
+          >API Key<input
+            id="setting-key"
+            type="password"
+            placeholder="已配置；留空保留原来的 Key"
+            autocomplete="new-password"
+        /></label>
+        <div class="settings-row">
+          <label
+            >模型<select id="setting-model" required aria-label="模型"></select
+            ><button
+              id="refresh-models"
+              class="text-button refresh-models"
+              type="button"
+            >
+              刷新模型列表
+            </button></label
+          ><label
+            >思考强度<select id="setting-effort">
+              <option value="minimal">极低</option>
+              <option value="low">低</option>
+              <option value="medium">中</option>
+              <option value="high">高</option>
+              <option value="xhigh">极高（默认）</option>
+            </select></label
+          >
+        </div>
+        <label class="checkbox-label"
+          ><input id="setting-fast" type="checkbox" checked />启用 Fast
+          模式</label
+        >
+        <p class="settings-hint">
+          Fast 和思考强度可分别调整；加速是否生效取决于中转站支持。
+        </p>
+        <label class="checkbox-label"
+          ><input id="setting-web" type="checkbox" />启用联网搜索</label
+        >
+        <details class="advanced-settings">
+          <summary>高级：CLI 更新与恢复</summary>
+          <section class="cli-settings" aria-label="CLI 更新">
+            <div class="cli-heading">
+              <strong>Codex CLI</strong><span id="cli-current">读取版本…</span>
+            </div>
+            <p id="cli-message">从官方发布页更新，保留你的对话与工具。</p>
+            <progress
+              id="cli-progress"
+              class="hidden"
+              aria-label="CLI 更新进度"
+            ></progress>
+            <div class="cli-actions">
+              <button id="cli-check" type="button" class="secondary-button">
+                检查更新</button
+              ><button
+                id="cli-update"
+                type="button"
+                class="primary-button"
+                disabled
+              >
+                一键更新</button
+              ><button
+                id="cli-rollback"
+                type="button"
+                class="secondary-button"
+                disabled
+              >
+                恢复上一版</button
+              ><button id="cli-cancel" type="button" class="text-button hidden">
+                取消
+              </button>
+            </div>
+          </section>
+        </details>
+        <div class="settings-info">
+          <span>权限：全权限（YOLO）</span
+          ><small>允许直接处理文件、执行脚本和联网。</small
+          ><span id="data-location"></span>
+        </div>
+        <div id="settings-result" class="settings-result"></div>
+        <div class="dialog-footer">
+          <button id="test-connection" type="button" class="secondary-button">
+            测试连接</button
+          ><button type="submit" class="primary-button">保存并使用</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="benchmark-dialog">
+      <div class="dialog-header">
+        <div>
+          <h2>线路测速对比</h2>
+          <p id="benchmark-parameters">gpt-6.1-sol · xhigh · Fast</p>
+        </div>
+        <button
+          id="benchmark-close"
+          type="button"
+          class="icon-button"
+          aria-label="关闭测速"
+        >
+          ×
+        </button>
+      </div>
+      <p id="benchmark-summary" class="benchmark-summary"></p>
+      <div class="benchmark-table">
+        <table>
+          <thead>
+            <tr>
+              <th>线路</th>
+              <th>首字耗时</th>
+              <th>完成耗时</th>
+              <th>结果</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="benchmark-results"></tbody>
+        </table>
+      </div>
+      <p class="settings-hint">
+        相同模型、思考强度、Fast 和输出任务。单次结果会随网络及排队变化。
+      </p>
+      <div class="dialog-footer">
+        <button
+          id="benchmark-cancel"
+          type="button"
+          class="secondary-button hidden"
+        >
+          停止测速</button
+        ><button id="benchmark-rerun" type="button" class="primary-button">
+          重新测速
+        </button>
+      </div>
+    </dialog>
+    <dialog id="pet-settings">
+      <form id="pet-form">
+        <div class="dialog-header">
+          <div>
+            <h2>Bongo 桌面伙伴</h2>
+            <p>陪你处理文件，做完会来告诉你。</p>
+          </div>
+          <button
+            id="pet-settings-close"
+            type="button"
+            class="icon-button"
+            aria-label="关闭桌宠设置"
+          >
+            ×
+          </button>
+        </div>
+        <label class="checkbox-label"
+          ><input id="pet-enabled" type="checkbox" />显示 Live2D 小猫</label
+        ><label
+          >猫猫大小<select id="pet-scale">
+            <option value="0.7">小</option>
+            <option value="1">适中</option>
+            <option value="1.3">大</option>
+            <option value="1.4">更大</option>
+          </select></label
+        ><label class="checkbox-label"
+          ><input id="pet-topmost" type="checkbox" />悬浮在其他窗口上方</label
+        ><label class="checkbox-label"
+          ><input
+            id="pet-notifications"
+            type="checkbox"
+          />任务完成或失败时提醒我</label
+        ><label class="checkbox-label"
+          ><input
+            id="pet-quiet"
+            type="checkbox"
+          />安静模式：保留状态，减少打扰</label
+        ><label class="checkbox-label"
+          ><input
+            id="pet-background"
+            type="checkbox"
+          />关闭主窗口后留在托盘，任务继续运行</label
+        >
+        <div class="settings-info">
+          <span>单击摸头 · 双击快捷聊天 · 拖动换位置</span
+          ><small
+            >右键有更多互动；文件可以直接拖到猫身上。Ctrl+Alt+P
+            打开快捷聊天。</small
+          >
+        </div>
+        <div class="dialog-footer">
+          <button id="pet-preview" type="button" class="secondary-button">
+            打开快捷聊天</button
+          ><button type="submit" class="primary-button">保存设置</button>
+        </div>
+        <button id="app-quit" type="button" class="text-button app-quit">
+          退出文件助手
+        </button>
+      </form>
+    </dialog>
+    <dialog id="retry-dialog">
+      <div class="dialog-header">
+        <h2>换线路重试</h2>
+        <button id="retry-close" class="icon-button">×</button>
+      </div>
+      <p class="settings-hint">
+        使用同一请求和附件重新执行，结果保存到新的任务目录。
+      </p>
+      <label>选择线路<select id="retry-profiles"></select></label
+      ><button id="retry-submit" class="primary-button">重试这次任务</button>
+    </dialog>
+    <dialog id="help-dialog">
+      <div class="dialog-header">
+        <div>
+          <h2>帮助与数据</h2>
+          <p>拖文件或粘贴截图 → 说要做什么 → 打开本次结果</p>
+        </div>
+        <button id="help-close" class="icon-button">×</button>
+      </div>
+      <div class="help-content">
+        <p>
+          每次任务会创建原件快照和处理副本，结果分别放在“输出”下的新目录。结果卡可打开、另存、打包文件，或恢复原件副本。
+        </p>
+        <p>
+          任务显示“等你回答”时，请在该对话的绿色问题卡里回答。连接慢时可以停止，再换线路重试。深度处理（xhigh）可能需要更多等待时间。
+        </p>
+        <p>
+          关闭主窗口后，猫和托盘继续提醒；右键猫选择“退出”可真正结束程序。Ctrl+Alt+P
+          打开快捷聊天。
+        </p>
+        <p>
+          已归档对话可在左侧“最近对话”下拉中找回。目录被移动后，错误卡的“重新定位工作目录”能接着原对话工作。
+        </p>
+        <p>
+          备份包含个人设置和令牌，请存到你自己的位置；诊断文件仅含版本和错误分类，不包含令牌、文件内容或对话正文。
+        </p>
+      </div>
+      <div class="help-actions">
+        <button id="help-backup" class="secondary-button">备份历史与配置</button
+        ><button id="help-restore" class="secondary-button">从备份恢复</button
+        ><button id="help-import" class="secondary-button">
+          重新查找/导入旧目录</button
+        ><button id="help-diagnostics" class="secondary-button">
+          导出诊断
+        </button>
+      </div>
+    </dialog>
+    <dialog id="onboarding">
+      <div class="dialog-header">
+        <div>
+          <h2>先完成第一件小事</h2>
+          <p>不用设置模型，直接给文件、说要求。</p>
+        </div>
+        <button id="onboarding-close" class="icon-button" title="稍后再看">
+          ×
+        </button>
+      </div>
+      <ol class="onboarding-steps">
+        <li>
+          <strong>结果放在哪里？</strong>
+          <p>选一个普通工作文件夹，每次结果会放进它的“输出”目录。</p>
+          <button id="onboarding-folder" class="secondary-button">
+            选择工作文件夹</button
+          ><small id="onboarding-location"></small>
+        </li>
+        <li>
+          <strong>把文件交给我</strong>
+          <p>用 ＋、拖放或 Ctrl+V 粘贴截图。我们会保留原件副本。</p>
+        </li>
+        <li>
+          <strong>说说想得到什么</strong>
+          <p>例如“把这份材料整理成一页 Word 摘要”。也可以用“常用任务”。</p>
+        </li>
+      </ol>
+      <button id="onboarding-start" class="primary-button">
+        开始整理第一份材料
+      </button>
+    </dialog>
+    <dialog id="rename-dialog">
+      <form id="rename-form">
+        <div class="dialog-header"><h2>重命名对话</h2></div>
+        <label
+          >对话名称<input id="rename-title" maxlength="100" required
+        /></label>
+        <div class="dialog-footer">
+          <button id="rename-cancel" type="button" class="secondary-button">
+            取消</button
+          ><button type="submit" class="primary-button">保存</button>
+        </div>
+      </form>
+    </dialog>
+    <div id="toast" role="status" class="toast hidden"></div>
+    <script src="../../node_modules/marked/lib/marked.umd.js"></script>
+    <script src="../../node_modules/dompurify/dist/purify.min.js"></script>
+    <script src="renderer.js"></script>
+  </body>
+</html>

@@ -1,0 +1,63 @@
+'use strict';
+const { contextBridge, ipcRenderer, webUtils } = require('electron');
+const invoke = (name, ...args) =>
+  ipcRenderer.invoke('portable:' + name, ...args);
+contextBridge.exposeInMainWorld('portable', {
+  initialize: () => invoke('initialize'),
+  preferences: (update) => invoke('preferences', update),
+  getDraft: (id) => invoke('get-draft', id),
+  saveDraft: (id, draft) => invoke('save-draft', id, draft),
+  pendingQuestions: (id) => invoke('pending-questions', id),
+  listArchived: () => invoke('list-archived'),
+  restoreChat: (id) => invoke('restore-chat', id),
+  relocateChat: (id) => invoke('relocate-chat', id),
+  retry: (id, profile) => invoke('retry', id, profile),
+  saveResult: (id, task, file) => invoke('save-result', id, task, file),
+  zipResults: (id, task) => invoke('zip-results', id, task),
+  restoreOriginal: (id, task, index) =>
+    invoke('restore-original', id, task, index),
+  diagnostics: () => invoke('diagnostics'),
+  backupData: () => invoke('backup-data'),
+  importData: (mode) => invoke('import-data', mode),
+  selectDirectory: () => invoke('select-directory'),
+  createChat: (directory) => invoke('create-chat', directory),
+  getChat: (id) => invoke('get-chat', id),
+  listChats: () => invoke('list-chats'),
+  renameChat: (id, title) => invoke('rename-chat', id, title),
+  archiveChat: (id) => invoke('archive-chat', id),
+  send: (id, text, files) => invoke('send', id, text, files),
+  stop: (id) => invoke('stop', id),
+  selectFiles: () => invoke('select-files'),
+  describeFiles: (files) => invoke('describe-files', files),
+  importImage: (bytes, name) => invoke('import-image', bytes, name),
+  pasteImage: () => invoke('paste-image'),
+  filePath: (file) => webUtils.getPathForFile(file),
+  listFiles: (id) => invoke('list-files', id),
+  outputFiles: (id) => invoke('output-files', id),
+  open: (target, id) => invoke('open', target, id),
+  reveal: (target) => invoke('reveal', target),
+  saveSettings: (settings) => invoke('save-settings', settings),
+  selectProfile: (id) => invoke('select-profile', id),
+  deleteProfile: (id) => invoke('delete-profile', id),
+  profileModels: (draft) => invoke('profile-models', draft),
+  testConnection: () => invoke('test-connection'),
+  benchmarkStatus: () => invoke('benchmark-status'),
+  benchmarkRun: () => invoke('benchmark-run'),
+  benchmarkCancel: () => invoke('benchmark-cancel'),
+  petStatus: () => invoke('pet-status'),
+  configurePet: (update) => invoke('pet-configure', update),
+  petQuick: () => invoke('pet-quick'),
+  quit: () => invoke('app-quit'),
+  cliStatus: () => invoke('cli-status'),
+  checkCli: () => invoke('cli-check'),
+  updateCli: () => invoke('cli-update'),
+  rollbackCli: () => invoke('cli-rollback'),
+  cancelCliUpdate: () => invoke('cli-cancel'),
+  exportChat: (id) => invoke('export-chat', id),
+  answer: (requestId, answers) => invoke('answer', requestId, answers),
+  onEvent: (callback) => {
+    const handler = (_, event) => callback(event);
+    ipcRenderer.on('portable:event', handler);
+    return () => ipcRenderer.removeListener('portable:event', handler);
+  },
+});

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'none'; style-src 'unsafe-inline'"
+    />
+    <title>正在继承旧版记录</title>
+    <style>
+      body {
+        margin: 0;
+        background: #fcfbf8;
+        color: #365543;
+        font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        padding: 30px 34px;
+        border: 1px solid #dce6d4;
+        height: 158px;
+      }
+      h1 {
+        font-size: 19px;
+        font-weight: 500;
+        margin: 0 0 14px;
+      }
+      p {
+        font-size: 12px;
+        line-height: 1.8;
+        color: #84987a;
+        margin: 0;
+      }
+      small {
+        display: block;
+        margin-top: 15px;
+        color: #a4af98;
+        font-size: 10px;
+      }
+      .dot {
+        display: inline-block;
+        background: #4b8b6d;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 10px;
+        animation: p 1s infinite;
+      }
+      @keyframes p {
+        50% {
+          opacity: 0.3;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1><span class="dot"></span>正在继承旧版记录</h1>
+    <p id="progress">正在查找历史对话、配置和截图附件…</p>
+    <small>只在首次打开时处理，旧版本中的数据会保留。</small>
+  </body>
+</html>
