@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="popup.css" />
+    <title>浏览器采集助手</title>
+  </head>
+  <body>
+    <strong>Codex Portable 浏览器采集</strong>
+    <p>在便携助手的“浏览器采集”中复制配对信息，粘贴到这里。仅连接本机。</p>
+    <textarea
+      id="pair"
+      placeholder="粘贴配对信息"
+      aria-label="配对信息"
+    ></textarea>
+    <button id="connect">连接并使用当前网页</button
+    ><button id="disconnect">断开连接</button>
+    <p id="status" role="status"></p>
+    <small
+      >会显示浏览器调试提示。采集时不要在同一标签页操作；登录或验证时可直接接管。关闭便携助手即停止连接。</small
+    >
+    <script src="popup.js"></script>
+  </body>
+</html>

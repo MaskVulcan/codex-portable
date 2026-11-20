@@ -87,6 +87,9 @@
       </div>
       <div id="history" class="history"></div>
       <div class="sidebar-bottom">
+        <button id="browser-open" class="sidebar-button">
+          <span>◎</span>浏览器采集
+        </button>
         <button id="help-open" class="sidebar-button">
           <span>?</span>帮助与数据</button
         ><button id="pet-open" class="sidebar-button">
@@ -205,6 +208,25 @@
             ↓
           </button>
           <div class="composer-area">
+            <section
+              id="task-progress"
+              class="task-progress hidden"
+              aria-label="实时任务进度"
+              aria-live="polite"
+            >
+              <strong id="progress-headline"></strong
+              ><small id="progress-time"></small>
+              <p id="progress-detail"></p>
+              <p id="progress-counts"></p>
+              <p id="progress-url"></p>
+              <p id="progress-warning"></p>
+              <ol id="progress-plan"></ol>
+              <div class="progress-actions">
+                <button id="progress-browser">查看浏览器</button
+                ><button id="progress-results">查看已保存文件</button
+                ><button id="progress-resume">继续采集</button>
+              </div>
+            </section>
             <div id="question-panel" class="question-panel hidden"></div>
             <div
               id="mention-list"
@@ -337,6 +359,37 @@
         ><small>Word · PDF · 图片 · 表格 · 其他文件</small>
       </div>
     </div>
+    <dialog id="browser-dialog">
+      <div class="dialog-header">
+        <div>
+          <h2>连接用户浏览器</h2>
+          <p>复用 Chrome / Edge 登录状态，采集帖子、评论与截图。</p>
+        </div>
+        <button id="browser-close" class="icon-button" aria-label="关闭">
+          ×
+        </button>
+      </div>
+      <ol class="help-content">
+        <li>
+          打开浏览器扩展管理页，启用“开发者模式”。Chrome 地址为
+          chrome://extensions，Edge 地址为 edge://extensions。
+        </li>
+        <li>
+          点下面“打开扩展文件夹”，在浏览器选择“加载已解压的扩展”，选中
+          browser-extension 文件夹。只需首次操作。
+        </li>
+        <li>打开已登录的小红书网页，点扩展图标，粘贴配对信息并连接。</li>
+      </ol>
+      <div class="dialog-footer">
+        <button id="browser-extension" class="secondary-button">
+          打开扩展文件夹</button
+        ><button id="browser-copy" class="primary-button">复制配对信息</button>
+      </div>
+      <p id="browser-connection-status" class="settings-result"></p>
+      <p class="help-content">
+        浏览器会显示调试提示，采集时请保留标签页。遇到登录、验证码或访问频繁，请在网页处理后继续。扩展只连接本机；配对信息请保密。
+      </p>
+    </dialog>
     <dialog id="settings">
       <form id="settings-form">
         <div class="dialog-header">

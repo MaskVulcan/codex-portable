@@ -243,6 +243,8 @@ async function validateOutputs(task, python, tools, signal) {
 function taskOutcome(task, status) {
   if (status === 'interrupted') return '已停止';
   if (status === 'failed') return '处理失败';
+  if (task.collection && task.collection.status !== 'completed')
+    return '部分完成';
   if (!task.artifacts?.length) return '已回答';
   if (task.artifacts.some((f) => !f.validation?.valid)) return '部分完成';
   return '已生成文件';

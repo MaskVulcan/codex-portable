@@ -46,6 +46,9 @@ const {
   newTask,
 } = require('./workflow.cjs');
 const { zipFiles, backupData, extractBackup } = require('./data-tools.cjs');
+const { BrowserBridge } = require('./browser-bridge.cjs');
+const { BrowserCollector } = require('./browser-collection.cjs');
+const { updateProgress } = require('./progress.cjs');
 electron.protocol?.registerSchemesAsPrivileged([
   {
     scheme: 'petassets',
@@ -151,8 +154,88 @@ function launchApplication(inheritanceInfo) {
   const resumed = new Set(),
     byThread = new Map(),
     flushTimers = new Map(),
+    progressTimers = new Map(),
     questions = new Map();
   const actions = new Map();
+  const browser = new BrowserBridge({
+    root,
+    onCall: browserCall,
+    onChange: (status) => event('browser-status', { status }),
+  });
+  const collector = new BrowserCollector({
+    bridge: browser,
+    onProgress: (task, detail) => {
+      const chat = [...store.chats.values()].find(
+        (c) => c.tasks?.at(-1)?.id === task.id,
+      );
+      if (!chat) return;
+      task.progress ||= {};
+      task.progress.updatedAt = Date.now();
+      task.progress.detail = detail;
+      if (chat.busy)
+        chat.status =
+          task.collection?.status === 'needs_user'
+            ? '需要登录或验证'
+            : '正在采集浏览器内容';
+      save(chat);
+      publish(chat);
+    },
+  });
+  function browserOperation(taskId) {
+    for (const [id, op] of operations)
+      if (op.task?.id === taskId && !op.controller.signal.aborted)
+        return { chat: store.get(id), operation: op, task: op.task };
+    throw new Error('浏览器任务已停止或过期，请在当前对话重新发送。');
+  }
+  async function browserCall(args) {
+    const { chat, operation, task } = browserOperation(args.taskId),
+      signal = operation.controller.signal;
+    task.progress ||= {};
+    task.progress.updatedAt = Date.now();
+    const names = {
+      browser_open: '打开网页',
+      browser_read: '读取页面',
+      browser_action: '操作页面',
+      browser_screenshot: '保存截图',
+      browser_collect: '批量采集',
+    };
+    task.progress.detail = names[args.tool] || '浏览器操作';
+    publish(chat);
+    if (args.tool === 'browser_collect')
+      return collector.collect({
+        task,
+        session: chat.id,
+        urls: args.urls,
+        commentPages: args.commentPages ?? 5,
+        signal,
+      });
+    if (args.tool === 'browser_screenshot') {
+      const file = await collector.screenshot(
+        chat.id,
+        path.join(task.output, '浏览器截图'),
+        '截图-' + Date.now(),
+        signal,
+      );
+      return { path: file };
+    }
+    const op = {
+      browser_open: 'open',
+      browser_read: 'read',
+      browser_action: args.action,
+    }[args.tool];
+    if (!['open', 'read', 'click', 'fill', 'scroll'].includes(op))
+      throw new Error('不支持的浏览器工具。');
+    const result = await browser.request(chat.id, op, args, signal);
+    task.progress.updatedAt = Date.now();
+    task.progress.currentUrl = result?.url;
+    if (result?.gate) {
+      chat.status = '需要登录或验证';
+      task.progress.detail = '请打开浏览器，在网页完成登录或验证。';
+    }
+    save(chat);
+    publish(chat);
+    return result;
+  }
   const petAssets = fs.existsSync(
     path.join(appDirectory, 'pets', 'bongo', 'cat.model3.json'),
   )
@@ -397,6 +480,7 @@ function launchApplication(inheritanceInfo) {
         throw new Error('请先在设置中填写中转 API Key。');
       const run = await prepareRuntime();
       if (epoch !== backendEpoch) throw cancelled();
+      const connectionFile = await browser.start();
       const py = path.dirname(run.python);
       const env = {
         PATH: [
@@ -417,6 +501,11 @@ function launchApplication(inheritanceInfo) {
         executable: run.codex,
         home: path.join(root, 'codex-home'),
         settings: { ...store.settings },
+        browser: {
+          python: run.python,
+          script: path.join(path.dirname(run.tools), 'browser_mcp.py'),
+          connectionFile,
+        },
         env,
         log,
       });
@@ -558,6 +647,24 @@ function launchApplication(inheritanceInfo) {
     const operation = operations.get(chat.id);
     if (!operation || operation.controller.signal.aborted) return;
     if (p.turnId && chat.turnId && p.turnId !== chat.turnId) return;
+    const progressOnly = updateProgress(chat, method, p, store.secrets());
+    if (progressOnly) {
+      save(chat);
+      if (
+        method === 'item/commandExecution/outputDelta' ||
+        method === 'item/mcpToolCall/progress'
+      ) {
+        if (!progressTimers.has(chat.id))
+          progressTimers.set(
+            chat.id,
+            setTimeout(() => {
+              progressTimers.delete(chat.id);
+              publish(chat);
+            }, 200),
+          );
+      } else publish(chat);
+      return;
+    }
     if (chat.tasks?.at(-1) && chat.busy) chat.tasks.at(-1).phase = chat.status;
     if (method === 'turn/started') {
       chat.turnId = p.turn?.id;
@@ -628,7 +735,15 @@ function launchApplication(inheritanceInfo) {
           query: item.query,
           text: item.text,
           exitCode: item.exitCode,
-          output: (item.aggregatedOutput || '').slice(-12000),
+          output: redact(
+            item.aggregatedOutput || action.output || '',
+            store.secrets(),
+          ).slice(-12000),
+          taskId: operation.task?.id,
+          tool: item.tool,
+          failed:
+            (typeof item.exitCode === 'number' && item.exitCode !== 0) ||
+            item.status === 'failed',
           changes: item.changes?.map((c) => c.path),
         });
         const labels = {
@@ -642,7 +757,8 @@ function launchApplication(inheritanceInfo) {
           plan: '正在安排步骤',
           dynamicToolCall: '正在使用工具',
         };
-        chat.status = labels[item.type] || '正在处理';
+        chat.status =
+          operation.task?.progress?.headline || labels[item.type] || '正在处理';
       }
       save(chat);
       publish(chat);
@@ -748,6 +864,7 @@ function launchApplication(inheritanceInfo) {
         ...run,
         output,
         directory: chat.directory,
+        browserTaskId: operation?.task.id,
       }),
     };
     if (!chat.threadId) {
@@ -872,6 +989,67 @@ function launchApplication(inheritanceInfo) {
     };
   });
   handle('preferences', (update) => workspace.preference(update));
+  handle('browser-status', async () => {
+    await browser.start();
+    return { ...browser.status(), pairUrl: browser.pairUrl() };
+  });
+  handle('browser-extension-folder', async () => {
+    const directory = app.isPackaged
+      ? path.join(appDirectory, 'browser-extension')
+      : path.join(__dirname, '..', 'browser-extension');
+    const error = await shell.openPath(directory);
+    if (error) throw new Error(error);
+    return true;
+  });
+  handle('browser-focus', async (id) => {
+    await browser.start();
+    return browser.request(id || currentChatId || 'preview', 'focus');
+  });
+  handle('browser-resume', async (id) => {
+    const chat = store.get(id),
+      task = chat.tasks?.at(-1);
+    if (
+      chat.busy ||
+      operations.has(id) ||
+      updater.busy ||
+      maintenance ||
+      benchmark.status().busy
+    )
+      throw new Error('请先等待或停止当前任务，再继续采集。');
+    if (!task?.collection) throw new Error('没有可继续的采集断点。');
+    await browser.start();
+    if (!browser.status().connected)
+      throw new Error('请先连接浏览器扩展，再继续采集。');
+    const operation = { controller: new AbortController(), task };
+    operations.set(id, operation);
+    chat.busy = true;
+    task.status = 'running';
+    chat.failure = null;
+    delete task.completedAt;
+    publish(chat);
+    (async () => {
+      try {
+        await collector.collect({
+          task,
+          session: id,
+          urls: [],
+          commentPages:
+            readJson(task.collection.checkpoint, {}).commentPages || 5,
+          signal: operation.controller.signal,
+        });
+        await finishTask(chat, { status: 'completed' });
+      } catch (error) {
+        if (!operation.controller.signal.aborted) {
+          chat.failure = failure(error);
+          await finishTask(chat, {
+            status: 'failed',
+            error: { message: error.message },
+          });
+        }
+      }
+    })().catch((e) => log('Browser resume: ' + e.message));
+    return true;
+  });
   handle('get-draft', (id) => workspace.draft(id || 'new'));
   handle('save-draft', (id, draft) => {
     const result = workspace.saveDraft(id || 'new', draft);
@@ -1617,10 +1795,13 @@ function launchApplication(inheritanceInfo) {
   });
   app.on('before-quit', () => {
     quitting = true;
+    for (const operation of operations.values()) operation.controller.abort();
+    browser.close();
     pet.shutdown();
     benchmark.cancel();
     if (rpc) rpc.close();
     for (const t of flushTimers.values()) clearTimeout(t);
+    for (const t of progressTimers.values()) clearTimeout(t);
     for (const c of store.chats.values()) {
       if (c.busy) {
         c.busy = false;

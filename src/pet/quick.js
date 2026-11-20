@@ -68,6 +68,11 @@ function render() {
   $('status-text').textContent = imports
     ? '正在添加图片…'
     : chat?.status || current.message;
+  if (!imports && chat?.task?.collection) {
+    const c = chat.task.collection;
+    $('status-text').textContent =
+      `${chat.status} · ${c.completed}/${c.total} 篇 · ${c.screenshots} 张截图`;
+  }
   $('badge').textContent = current.noticeCount || '';
   $('send').disabled = busy || sending || imports > 0;
   $('send').classList.toggle('hidden', busy);

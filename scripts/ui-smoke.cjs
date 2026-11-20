@@ -8,6 +8,7 @@ const out = path.resolve(__dirname, '../test-output/ui');
 fs.mkdirSync(out, { recursive: true });
 (async () => {
   const browser = await chromium.launch({
+    executablePath: process.env.TEST_CHROMIUM,
     headless: true,
     args: ['--no-sandbox', '--disable-dev-shm-usage'],
   });

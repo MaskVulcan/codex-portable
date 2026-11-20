@@ -9,6 +9,7 @@ const root = path.resolve(__dirname, '..'),
 fs.mkdirSync(out, { recursive: true });
 (async () => {
   const browser = await chromium.launch({
+    executablePath: process.env.TEST_CHROMIUM,
     headless: true,
     args: ['--no-sandbox', '--disable-dev-shm-usage'],
   });
@@ -119,6 +120,13 @@ fs.mkdirSync(out, { recursive: true });
         saveResult: async () => null,
         zipResults: async () => null,
         restoreOriginal: async () => null,
+        browserStatus: async () => ({
+          connected: true,
+          pairUrl: 'ws://127.0.0.1:39271/browser?token=' + 'a'.repeat(64),
+        }),
+        browserExtensionFolder: async () => true,
+        browserFocus: async () => true,
+        browserResume: async () => true,
       };
     });
     await page.goto(pathToFileURL(path.join(root, 'src/ui/index.html')).href);
@@ -205,6 +213,64 @@ fs.mkdirSync(out, { recursive: true });
       await page.getByText('打包本次文件', { exact: true }).count(),
       1,
     );
+    await page.evaluate(() => {
+      const c = window.regression.chats[0];
+      c.busy = true;
+      c.status = '正在采集浏览器内容';
+      c.tasks[0].startedAt = Date.now() - 7000;
+      c.tasks[0].progress = {
+        updatedAt: Date.now(),
+        detail: '正在读取通勤穿搭笔记 3/20',
+        errors: 1,
+        lastError: '页面需要登录',
+        plan: [
+          { step: '搜索主题相关帖子', status: 'completed' },
+          { step: '读取 5 屏评论并截图', status: 'in_progress' },
+        ],
+      };
+      c.tasks[0].collection = {
+        status: 'running',
+        detail: '已保留 3 篇的截图',
+        completed: 3,
+        total: 20,
+        comments: 41,
+        screenshots: 18,
+        failed: 1,
+      };
+      window.regression.emit({ type: 'chat', chat: c });
+    });
+    assert.match(
+      await page.locator('#progress-headline').textContent(),
+      /采集浏览器内容/,
+    );
+    assert.match(
+      await page.locator('#progress-counts').textContent(),
+      /3 \/ 20 篇/,
+    );
+    assert.match(
+      await page.locator('#progress-warning').textContent(),
+      /1 次工具错误/,
+    );
+    assert.match(
+      await page.locator('#progress-plan').textContent(),
+      /搜索主题相关帖子/,
+    );
+    assert.equal(await page.locator('#progress-resume').isVisible(), false);
+    await page.evaluate(() => {
+      const c = window.regression.chats[0];
+      c.busy = false;
+      c.status = '部分完成';
+      c.tasks[0].collection.status = 'needs_user';
+      window.regression.emit({ type: 'chat', chat: c });
+    });
+    await page.locator('#progress-resume').click();
+    await page.click('#browser-open');
+    await page.getByText('连接用户浏览器', { exact: true }).waitFor();
+    assert.match(
+      await page.locator('#browser-connection-status').textContent(),
+      /已连接/,
+    );
+    await page.click('#browser-close');
     await page.screenshot({
       path: path.join(out, 'result-card.png'),
       fullPage: true,
@@ -275,6 +341,9 @@ fs.mkdirSync(out, { recursive: true });
     assert.equal(await quick.inputValue('#prompt'), 'B草稿');
     const report = {
       passed: true,
+      browserProgressVisible: true,
+      browserPairingGuideVisible: true,
+      browserResumeVisible: true,
       draftsIsolatedAcrossChats: true,
       attachmentsRestored: true,
       pendingQuestionRecovered: true,

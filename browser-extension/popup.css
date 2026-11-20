@@ -1,0 +1,33 @@
+body {
+  width: 300px;
+  font: 13px/1.7 system-ui;
+  color: #304c3b;
+  padding: 12px;
+  background: #fcfdf8;
+}
+p,
+small {
+  color: #6e806a;
+}
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+  height: 70px;
+  border: 1px solid #c9d7bf;
+  border-radius: 6px;
+  padding: 8px;
+}
+button {
+  border: 1px solid #c9d7bf;
+  border-radius: 6px;
+  background: #eaf2e2;
+  padding: 7px 10px;
+  margin: 10px 5px 0 0;
+  cursor: pointer;
+}
+small {
+  font-size: 11px;
+}
+#status {
+  overflow-wrap: anywhere;
+}

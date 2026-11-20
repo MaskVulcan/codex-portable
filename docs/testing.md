@@ -65,3 +65,13 @@ Live2D 渲染检查改用 `--enable-unsafe-swiftshader --use-gl=angle --use-angl
 Linux 上的 Electron/模型验证不能代替 Windows 10/11 + WPS 原机验证。
 原机重点检查截图粘贴、中文长路径、WPS 文件占用、托盘、多屏、缩放和断网恢复。
 文件结构能打开的检查不验证事实正确性和排版质量。
+
+## 用户浏览器与采集验证（1.3.0）
+
+`node scripts/browser-native.cjs` 在真实 Chromium 中加载 MV3 扩展，验证弹窗配对、Chrome 调试 API、页面读取、截图和断开连接。
+`node scripts/browser-integration.cjs` 用真实 Chromium/CDP 驱动原扩展 worker，验证批量评论去重、逐屏截图、登录识别、Python MCP 和 Codex app-server 工具调用。
+可通过 `TEST_CHROMIUM` 指定已安装 Chromium 的可执行路径；省略时使用当前 Playwright 下载的浏览器。
+设置 `TEST_BROWSER_MODEL=1` 额外发起真实模型请求，并断言模型确实完成 browser_read 和 browser_screenshot 工具调用。
+两项测试都只使用本地夹具页面，不能代替用户小红书账号、网站实时页面或 Windows/Edge 的验收。
+
+`test/browser.test.cjs` 覆盖网页 Origin/错误令牌拒绝、取消、断点保留、登录后续采、评论去重、错误不重复重试、进度脱敏与部分完成状态。

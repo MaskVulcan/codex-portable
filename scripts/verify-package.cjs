@@ -24,6 +24,9 @@ const archive = path.join(resources, 'app.asar'),
     'src/core.cjs',
     'src/workflow.cjs',
     'src/data-tools.cjs',
+    'src/browser-bridge.cjs',
+    'src/browser-collection.cjs',
+    'src/progress.cjs',
     'src/persistence.cjs',
     'src/attachments.cjs',
     'src/runtime.cjs',
@@ -75,6 +78,7 @@ for (const name of [
   'node_modules/marked/package.json',
   'node_modules/dompurify/package.json',
   'node_modules/tar/package.json',
+  'node_modules/ws/package.json',
 ])
   assert.equal(
     JSON.parse(asar.extractFile(archive, name)).version,
@@ -84,6 +88,7 @@ for (const name of [
 for (const name of [
   'node_modules/marked/lib/marked.umd.js',
   'node_modules/dompurify/dist/purify.min.js',
+  'node_modules/ws/index.js',
 ])
   assert.equal(
     hash(asar.extractFile(archive, name)),
@@ -147,6 +152,28 @@ const mainSource = asar.extractFile(archive, 'src/main.cjs').toString();
 assert.ok(!mainSource.includes('promises.cp('));
 assert.ok(!mainSource.includes('PORTABLE_EXECUTABLE_DIR'));
 assert.ok(!mainSource.includes('首次启动：正在准备'));
+assert.equal(
+  hash(fs.readFileSync(path.join(distribution, 'scripts/browser_mcp.py'))),
+  hash(fs.readFileSync(path.join(root, 'assets/browser_mcp.py'))),
+);
+const browserExtension = path.join(distribution, 'browser-extension');
+for (const name of [
+  'manifest.json',
+  'worker.js',
+  'page.js',
+  'popup.html',
+  'popup.js',
+  'popup.css',
+])
+  assert.equal(
+    hash(fs.readFileSync(path.join(browserExtension, name))),
+    hash(fs.readFileSync(path.join(root, 'browser-extension', name))),
+    name + ' browser extension stale',
+  );
+const browserManifest = JSON.parse(
+  fs.readFileSync(path.join(browserExtension, 'manifest.json')),
+);
+assert.equal(browserManifest.manifest_version, 3);
 const output = path.join(root, 'test-output/package');
 fs.mkdirSync(output, { recursive: true });
 const extracted = path.join(output, 'unpacked-app');

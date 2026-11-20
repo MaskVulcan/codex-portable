@@ -1,6 +1,6 @@
 {
   "name": "codex-portable-assistant",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Portable Windows document assistant powered by Codex",
   "main": "src/main.cjs",
   "author": "MaskVulcan",
@@ -23,6 +23,7 @@
     "dompurify": "^3.3.0",
     "marked": "^15.0.12",
     "tar": "^7.5.22",
+    "ws": "^8.23.0",
     "yazl": "^3.3.1"
   },
   "devDependencies": {
@@ -57,7 +58,8 @@
       "assets/**/*",
       "package.json",
       "node_modules/marked/**/*",
-      "node_modules/dompurify/**/*"
+      "node_modules/dompurify/**/*",
+      "node_modules/ws/**/*"
     ],
     "extraResources": [],
     "win": {
@@ -86,6 +88,14 @@
       {
         "from": "assets/office_tools.py",
         "to": "scripts/office_tools.py"
+      },
+      {
+        "from": "assets/browser_mcp.py",
+        "to": "scripts/browser_mcp.py"
+      },
+      {
+        "from": "browser-extension",
+        "to": "browser-extension"
       },
       {
         "from": "payload/provisioning.json",

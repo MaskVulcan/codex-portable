@@ -11,7 +11,7 @@ VERSION = json.loads((ROOT / 'package.json').read_text())['version']
 DISTRIBUTION = ROOT / 'dist' / 'win-unpacked'
 FOLDER = f'Codex-Portable-{VERSION}-win-x64'
 EXE = DISTRIBUTION / 'Codex Portable.exe'
-REPORTS = ['live', 'main', 'ui', 'fast', 'updater', 'profiles', 'reported-data', 'electron', 'startup', 'benchmark', 'pet', 'inheritance', 'inheritance-boot', 'usability', 'usability-ui', 'novice', 'package']
+REPORTS = ['live', 'main', 'ui', 'fast', 'updater', 'profiles', 'reported-data', 'electron', 'startup', 'benchmark', 'pet', 'inheritance', 'inheritance-boot', 'usability', 'usability-ui', 'novice', 'browser', 'browser-native', 'package']
 checks = {}
 for name in REPORTS:
     checks[name] = json.loads((ROOT / 'test-output' / name / 'report.json').read_text())
@@ -29,6 +29,10 @@ readme = f'''Codex 便携文件助手 {VERSION} · Windows 10/11 64 位 · 目�
 4. 结果默认在工作文件夹的“输出/本次任务”目录，结果卡可打开、另存或打包。
 
 1.2.0 改进：
+  1.3.0 新增 Chrome/Edge 扩展桥接、主题批量帖子/评论/截图、断点续采及实时计划/输出/错误。
+  首次打开左侧“浏览器采集”，按三步加载同级 browser-extension 并配对；无注册表或安装器。
+  登录和验证码需要在网页完成。仅收集实际加载评论，不保证所有评论或楼中楼。
+  扩展功能已用本地页面与真实 Chromium 调试/截图链路验证，小红书真实账号及 Windows 原机尚未验收。
   跨对话问题卡和草稿隔离，主窗口与快捷聊天共享；附件草稿可以恢复。
   从连接到校验均可停止；按错误原因重试、换线路或重新定位工作目录。
   任务使用独立结果目录；输入文件保留原件快照、优先处理副本。
@@ -113,7 +117,7 @@ source = DEST / f'Codex-Portable-{VERSION}-source.zip'
 with zipfile.ZipFile(source, 'w', compression=zipfile.ZIP_DEFLATED) as z:
     for name in ['package.json', 'package-lock.json', 'README.md', '.gitignore', '.prettierrc.json', '.prettierignore', 'LICENSE', 'THIRD_PARTY.md']:
         z.write(ROOT / name, 'codex-portable/' + name)
-    for folder in ['src', 'assets', 'scripts', 'test', 'docs', '.github']:
+    for folder in ['src', 'assets', 'scripts', 'test', 'docs', '.github', 'browser-extension']:
         for p in (ROOT / folder).rglob('*'):
             if p.is_file() and '__pycache__' not in p.parts:
                 z.write(p, 'codex-portable/' + p.relative_to(ROOT).as_posix())

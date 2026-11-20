@@ -5,6 +5,10 @@ const invoke = (name, ...args) =>
 contextBridge.exposeInMainWorld('portable', {
   initialize: () => invoke('initialize'),
   preferences: (update) => invoke('preferences', update),
+  browserStatus: () => invoke('browser-status'),
+  browserExtensionFolder: () => invoke('browser-extension-folder'),
+  browserFocus: (id) => invoke('browser-focus', id),
+  browserResume: (id) => invoke('browser-resume', id),
   getDraft: (id) => invoke('get-draft', id),
   saveDraft: (id, draft) => invoke('save-draft', id, draft),
   pendingQuestions: (id) => invoke('pending-questions', id),

@@ -332,6 +332,62 @@ function renderHeader() {
   $('export').disabled = !state.chat?.messages.length;
   renderCli();
   renderBenchmark();
+  renderProgress();
+}
+function renderProgress() {
+  const task = state.chat?.tasks?.at(-1),
+    p = task?.progress || {},
+    c = task?.collection,
+    busy = state.chat?.busy;
+  const host = $('task-progress');
+  host.classList.toggle('hidden', !task || (!busy && !c));
+  if (!task) return;
+  $('progress-headline').textContent = state.chat.pendingQuestions?.length
+    ? '等你回答'
+    : c?.status === 'needs_user'
+      ? '需要在浏览器登录或验证'
+      : state.chat.status || task.phase;
+  const elapsed = Math.max(
+    0,
+    Math.floor(((task.completedAt || Date.now()) - task.startedAt) / 1000),
+  );
+  $('progress-time').textContent = '已用 ' + elapsed + ' 秒';
+  $('progress-detail').textContent = c?.detail || p.detail || '等待下一步动态…';
+  $('progress-counts').textContent = c
+    ? `已保存 ${c.completed} / ${c.total} 篇 · ${c.comments} 条已加载评论 · ${c.screenshots} 张截图${c.failed ? ' · ' + c.failed + ' 篇遇到问题' : ''}`
+    : '';
+  $('progress-url').textContent = c?.currentUrl || p.currentUrl || '';
+  const idle = Math.floor(
+    (Date.now() - (p.updatedAt || task.startedAt)) / 1000,
+  );
+  $('progress-warning').textContent = p.errors
+    ? `过程遇到 ${p.errors} 次工具错误；${p.lastError?.slice(-150) || '详情见处理过程'}`
+    : busy && idle > 45
+      ? `已 ${idle} 秒无新动态，可查看浏览器或停止任务。`
+      : '';
+  const plan = $('progress-plan');
+  plan.replaceChildren();
+  for (const step of p.plan || []) {
+    const row = el(
+      'li',
+      '',
+      (step.status === 'completed'
+        ? '✓ '
+        : step.status === 'in_progress'
+          ? '正在进行 · '
+          : '待处理 · ') + step.step,
+    );
+    plan.append(row);
+  }
+  $('progress-browser').classList.toggle(
+    'hidden',
+    !c && !p.currentUrl && !/浏览器/.test(p.headline || ''),
+  );
+  $('progress-results').classList.toggle('hidden', !c);
+  $('progress-resume').classList.toggle(
+    'hidden',
+    !c || busy || c.status === 'completed',
+  );
 }
 function duration(ms) {
   return typeof ms === 'number' ? (ms / 1000).toFixed(2) + ' s' : '—';
@@ -553,13 +609,14 @@ function renderMessages() {
         el(
           'span',
           'activity-label',
-          (a.done ? '✓ ' : '◦ ') +
+          (a.failed ? '⚠ ' : a.done ? '✓ ' : '◦ ') +
             (names[a.type] || '处理') +
             (a.exitCode ? `（返回 ${a.exitCode}）` : ''),
         ),
       );
       if (a.command || a.query)
         row.append(el('code', '', a.command || a.query));
+      if (a.tool) row.append(el('code', '', a.tool));
       if (a.output) row.append(el('code', '', a.output));
       if (a.changes?.length) row.append(el('code', '', a.changes.join('\n')));
       details.append(row);
@@ -1111,6 +1168,10 @@ api.onEvent((event) => {
   if (event.type === 'outputs-changed' && event.chatId === state.chat?.id)
     attempt(refreshFiles);
   if (event.type === 'error') toast(event.message);
+  if (event.type === 'browser-status')
+    $('browser-connection-status').textContent = event.status.connected
+      ? '已连接用户浏览器，可以开始采集。'
+      : '浏览器连接已断开；已保存内容保留，请重连后继续。';
   if (event.type === 'question' && event.chatId === state.chat?.id) {
     if (
       !state.chat.pendingQuestions?.some((q) => q.requestId === event.requestId)
@@ -1341,6 +1402,7 @@ $('task-template').onchange = () => {
   $('task-template').value = '';
 };
 setInterval(() => {
+  renderProgress();
   const task = state.chat?.tasks?.at(-1);
   if (state.chat?.busy && task) {
     $('activity-text').textContent =
@@ -1352,6 +1414,36 @@ setInterval(() => {
       ' 秒';
   }
 }, 1000);
+let browserPair = '';
+async function openBrowserSettings() {
+  const result = await api.browserStatus();
+  browserPair = result.pairUrl;
+  $('browser-connection-status').textContent = result.connected
+    ? '已连接用户浏览器，可以开始采集。'
+    : '未连接。按以上步骤完成首次加载和配对。';
+  if (!$('browser-dialog').open) $('browser-dialog').showModal();
+}
+$('browser-open').onclick = () => attempt(openBrowserSettings);
+$('browser-close').onclick = () => $('browser-dialog').close();
+$('browser-extension').onclick = () =>
+  attempt(() => api.browserExtensionFolder());
+$('browser-copy').onclick = () =>
+  attempt(async () => {
+    const result = await api.browserStatus();
+    browserPair = result.pairUrl;
+    await navigator.clipboard.writeText(browserPair);
+    toast('配对信息已复制，请粘贴到浏览器扩展。');
+  });
+$('progress-browser').onclick = () =>
+  attempt(async () => {
+    const result = await api.browserStatus();
+    if (!result.connected) return openBrowserSettings();
+    await api.browserFocus(state.chat.id);
+  });
+$('progress-results').onclick = () =>
+  attempt(() => api.open(state.chat.tasks.at(-1).output, state.chat.id));
+$('progress-resume').onclick = () =>
+  attempt(() => api.browserResume(state.chat.id));
 $('pet-open').onclick = () =>
   attempt(async () => {
     state.pet = await api.petStatus();
